@@ -175,23 +175,31 @@ body { font-family: "Rajdhani", sans-serif; font-size: 1.05rem; }
   border-radius: 0.5rem;
   box-shadow: 0 0 20px -8px var(--primary);
 }
-.arc-reactor {
-  width: 160px; height: 160px; border-radius: 9999px;
-  border: 2px solid var(--primary);
-  box-shadow: 0 0 40px var(--primary), inset 0 0 40px color-mix(in oklab, var(--primary) 50%, transparent);
-  display: grid; place-items: center;
-  animation: arc-spin 12s linear infinite;
-  background: repeating-conic-gradient(color-mix(in oklab, var(--primary) 25%, transparent) 0 10deg, transparent 10deg 30deg);
-}
-.arc-reactor > div {
-  width: 70px; height: 70px; border-radius: 9999px;
-  background: radial-gradient(circle, var(--foreground), var(--primary) 60%, transparent 70%);
-  box-shadow: 0 0 30px var(--primary);
-  animation: arc-pulse 2.5s ease-in-out infinite;
-}
-.arc-active { animation-duration: 2s; }
-@keyframes arc-spin { to { transform: rotate(360deg); } }
-@keyframes arc-pulse { 50% { transform: scale(0.85); opacity: 0.8; } }
+.core3d { width: 220px; height: 220px; perspective: 700px; position: relative; }
+.core3d::before { content: ""; position: absolute; inset: 20%; border-radius: 9999px; background: radial-gradient(circle, color-mix(in oklab, var(--primary) 45%, transparent), transparent 70%); filter: blur(18px); animation: core-breathe 3s ease-in-out infinite; }
+.core-scene { position: absolute; inset: 0; transform-style: preserve-3d; animation: core-tilt 14s linear infinite; }
+.core-ring { position: absolute; inset: 0; border-radius: 9999px; transform-style: preserve-3d; border: 2px solid color-mix(in oklab, var(--primary) 80%, transparent); box-shadow: 0 0 18px var(--primary), inset 0 0 18px color-mix(in oklab, var(--primary) 40%, transparent); }
+.core-ring.r1 { animation: ring-a 6s linear infinite; background: repeating-conic-gradient(color-mix(in oklab, var(--primary) 30%, transparent) 0 6deg, transparent 6deg 30deg); -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%); mask: radial-gradient(circle, transparent 62%, #000 63%); }
+.core-ring.r2 { inset: 12%; border-style: dashed; animation: ring-b 8s linear infinite; }
+.core-ring.r3 { inset: 6%; border-color: color-mix(in oklab, var(--accent) 70%, transparent); box-shadow: 0 0 14px var(--accent); border-width: 1px 3px; animation: ring-c 10s linear infinite; }
+.core-ring.r4 { inset: 24%; animation: ring-d 5s linear infinite reverse; }
+.core-orbit { position: absolute; inset: 2%; border-radius: 9999px; transform-style: preserve-3d; }
+.core-orbit span { position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 9999px; background: var(--foreground); box-shadow: 0 0 12px var(--primary), 0 0 24px var(--primary); }
+.core-orbit.o1 { animation: ring-b 4s linear infinite; }
+.core-orbit.o2 { inset: 16%; animation: ring-c 3s linear infinite reverse; }
+.core-orbit.o2 span { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.core-heart { position: absolute; inset: 36%; border-radius: 9999px; background: radial-gradient(circle at 40% 35%, var(--foreground), var(--primary) 45%, color-mix(in oklab, var(--primary) 30%, transparent) 70%, transparent 72%); box-shadow: 0 0 40px var(--primary), 0 0 80px color-mix(in oklab, var(--primary) 50%, transparent); animation: core-pulse 2.4s ease-in-out infinite; }
+.core-active .core-scene { animation-duration: 4s; }
+.core-active .core-ring, .core-active .core-orbit { animation-duration: 1.6s; }
+.core-active .core-heart { animation-duration: 0.8s; }
+@keyframes core-tilt { 0% { transform: rotateX(62deg) rotateZ(0deg); } 50% { transform: rotateX(48deg) rotateY(18deg) rotateZ(180deg); } 100% { transform: rotateX(62deg) rotateZ(360deg); } }
+@keyframes ring-a { to { transform: rotateZ(360deg); } }
+@keyframes ring-b { from { transform: rotateX(70deg) rotateZ(0); } to { transform: rotateX(70deg) rotateZ(360deg); } }
+@keyframes ring-c { from { transform: rotateY(65deg) rotateZ(0); } to { transform: rotateY(65deg) rotateZ(360deg); } }
+@keyframes ring-d { from { transform: rotateX(-40deg) rotateY(40deg) rotateZ(0); } to { transform: rotateX(-40deg) rotateY(40deg) rotateZ(360deg); } }
+@keyframes core-pulse { 50% { transform: translateZ(10px) scale(0.86); filter: brightness(1.4); } }
+@keyframes core-breathe { 50% { opacity: 0.55; transform: scale(1.25); } }
+@media (prefers-reduced-motion: reduce) { .core3d * { animation-duration: 40s !important; } }
 .prose p { margin: 0.5rem 0; }
 .prose ul { list-style: disc; padding-left: 1.4rem; }
 .prose ol { list-style: decimal; padding-left: 1.4rem; }
