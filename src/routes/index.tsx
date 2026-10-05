@@ -4,6 +4,7 @@ import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Mic, MicOff, Send, Square, Volume2, VolumeX } from "lucide-react";
+import { matchAppCommand, openLink } from "@/lib/app-links";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 function textOf(m: { parts: Array<{ type: string; text?: string }> }) {
-  return m.parts.filter((p) => p.type === "text").map((p) => p.text).join("");
+  return m.parts.filter((p) => p.type === "text").map((p) => p.text).join("").replace(/\n\n\(System:[^)]*\)$/, "");
 }
 
 function Index() {
@@ -47,7 +48,13 @@ function Index() {
   const submit = (text: string) => {
     const t = text.trim();
     if (!t || busy) return;
-    sendMessage({ text: t });
+    const app = matchAppCommand(t);
+    if (app) {
+      openLink(app.url);
+      sendMessage({ text: `${t}\n\n(System: ${app.label} wurde bereits geöffnet. Bestätige kurz.)` });
+    } else {
+      sendMessage({ text: t });
+    }
     setInput("");
   };
 
