@@ -179,7 +179,13 @@ function Index() {
         <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
           {messages.length === 0 && (
             <div className="flex flex-col items-center text-center pt-10">
-              <div className={`arc-reactor ${busy ? "arc-active" : ""}`}><div /></div>
+              <div className={`core3d ${busy ? "core-active" : ""}`} aria-hidden="true">
+                <div className="core-scene">
+                  <div className="core-ring r1" /><div className="core-ring r2" /><div className="core-ring r3" /><div className="core-ring r4" />
+                  <div className="core-orbit o1"><span /></div><div className="core-orbit o2"><span /></div>
+                  <div className="core-heart" />
+                </div>
+              </div>
               <p className="mt-8 font-display tracking-[0.2em] text-primary">GUTEN TAG.</p>
               <p className="mt-2 text-muted-foreground max-w-md">Alle Systeme online. Wie kann ich Ihnen behilflich sein?</p>
               <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full max-w-xl">
