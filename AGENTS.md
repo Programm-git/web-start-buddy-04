@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Normalize supported text attachments in the browser and send image/PDF attachments through the existing streamed chat endpoint; this keeps uploads within the current conversation without a separate storage service.
