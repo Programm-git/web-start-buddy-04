@@ -1,0 +1,2 @@
+- [x] Replace four suggestions with file and photo actions; support image, PDF and text attachments in chat.
+- [x] Make microphone listening usable for spoken commands and verify the flow.
