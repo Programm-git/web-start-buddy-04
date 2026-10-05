@@ -11,14 +11,12 @@ export const Route = createFileRoute("/api/chat")({
         const apiKey = process.env.LOVABLE_API_KEY;
         if (!apiKey) return new Response("KI ist nicht konfiguriert.", { status: 500 });
         const { messages } = (await request.json()) as { messages: UIMessage[] };
-        const modelMessages = [
-          { role: "system" as const, content: SYSTEM },
-          ...(await convertToModelMessages(messages)),
-        ];
+        const modelMessages = await convertToModelMessages(messages);
         return createResponsesCall(
           request,
           { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
           modelMessages,
+          SYSTEM,
         ).response();
       },
     },
