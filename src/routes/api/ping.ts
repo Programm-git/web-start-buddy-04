@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createResponsesCall } from "@/lib/ai/responses";
 export const Route = createFileRoute("/api/ping")({
-  server: { handlers: { GET: async () => {
+  server: { handlers: { GET: async ({ request }) => {
     const t0 = Date.now();
-    try { const r = await fetch("https://ai.gateway.lovable.dev/v1/models", { headers: { Authorization: `Bearer ${process.env.LOVABLE_API_KEY}` } }); return new Response(`ok ${r.status} ${Date.now()-t0} key=${!!process.env.LOVABLE_API_KEY}`); }
-    catch (e) { return new Response(`err ${e}`); }
+    console.log("PING start");
+    const c = createResponsesCall(request, { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey: process.env.LOVABLE_API_KEY!, model: "openai/gpt-6-astra" }, [{ role: "user", content: "Hallo" }]);
+    console.log("PING created", Date.now()-t0);
+    const r = await c.response();
+    console.log("PING resp", Date.now()-t0);
+    return r;
   } } },
 });
