@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
 });
 
 function textOf(m: { parts: Array<{ type: string; text?: string }> }) {
-  return m.parts.filter((p) => p.type === "text").map((p) => p.text).join("");
+  return m.parts.filter((p) => p.type === "text").map((p) => p.text).join("").replace(/\n\n\(System:[^)]*\)$/, "");
 }
 
 function Index() {
