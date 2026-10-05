@@ -25,6 +25,11 @@ export function createResponsesCall(
     model: provider.responses(config.model),
     ...(system ? { system } : {}),
     abortSignal: request.signal,
+    // A stopped or reloaded chat aborts the request; that is expected, not a failure.
+    onError: ({ error }) => {
+      if (isAbort(error) || request.signal.aborted) return;
+      console.error("[chat] stream error", error);
+    },
     messages,
     providerOptions: {
       openai: {
@@ -43,6 +48,16 @@ export function createResponsesCall(
   return {
     result,
     response: () =>
-      withLovableAiGatewayRunIdHeader(result.toUIMessageStreamResponse({ sendReasoning: true }), runIdFetch),
+      withLovableAiGatewayRunIdHeader(
+        result.toUIMessageStreamResponse({
+          sendReasoning: true,
+          onError: (error) =>
+            isAbort(error) ? "Abgebrochen." : error instanceof Error ? error.message : "Unbekannter Fehler.",
+        }),
+        runIdFetch,
+      ).catch((error) => {
+        if (isAbort(error) || request.signal.aborted) return new Response(null, { status: 499 });
+        throw error;
+      }),
   };
 }
