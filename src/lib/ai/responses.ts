@@ -61,3 +61,7 @@ export function createResponsesCall(
       }),
   };
 }
+
+function isAbort(error: unknown) {
+  return error instanceof Error && (error.name === "AbortError" || error.name === "ResponseAborted");
+}
