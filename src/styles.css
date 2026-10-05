@@ -142,3 +142,60 @@
     color: var(--color-foreground);
   }
 }
+
+/* MARK LV HUD theme */
+:root {
+  --background: oklch(0.13 0.03 240);
+  --foreground: oklch(0.92 0.03 210);
+  --primary: oklch(0.82 0.14 205);
+  --primary-foreground: oklch(0.15 0.03 240);
+  --accent: oklch(0.75 0.17 55);
+  --accent-foreground: oklch(0.15 0.03 240);
+  --muted-foreground: oklch(0.65 0.04 220);
+  --border: oklch(0.82 0.14 205 / 0.2);
+  --destructive: oklch(0.65 0.22 25);
+}
+@theme inline {
+  --font-display: "Orbitron", sans-serif;
+  --font-sans: "Rajdhani", sans-serif;
+}
+body { font-family: "Rajdhani", sans-serif; font-size: 1.05rem; }
+.hud-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse at top, color-mix(in oklab, var(--primary) 14%, transparent), transparent 60%),
+    linear-gradient(color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--primary) 6%, transparent) 1px, transparent 1px);
+  background-size: 100% 100%, 40px 40px, 40px 40px;
+}
+.hud-glow { text-shadow: 0 0 12px var(--primary); }
+.hud-panel {
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, transparent);
+  background: color-mix(in oklab, var(--background) 80%, var(--primary) 6%);
+  border-radius: 0.5rem;
+  box-shadow: 0 0 20px -8px var(--primary);
+}
+.arc-reactor {
+  width: 160px; height: 160px; border-radius: 9999px;
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 40px var(--primary), inset 0 0 40px color-mix(in oklab, var(--primary) 50%, transparent);
+  display: grid; place-items: center;
+  animation: arc-spin 12s linear infinite;
+  background: repeating-conic-gradient(color-mix(in oklab, var(--primary) 25%, transparent) 0 10deg, transparent 10deg 30deg);
+}
+.arc-reactor > div {
+  width: 70px; height: 70px; border-radius: 9999px;
+  background: radial-gradient(circle, var(--foreground), var(--primary) 60%, transparent 70%);
+  box-shadow: 0 0 30px var(--primary);
+  animation: arc-pulse 2.5s ease-in-out infinite;
+}
+.arc-active { animation-duration: 2s; }
+@keyframes arc-spin { to { transform: rotate(360deg); } }
+@keyframes arc-pulse { 50% { transform: scale(0.85); opacity: 0.8; } }
+.prose p { margin: 0.5rem 0; }
+.prose ul { list-style: disc; padding-left: 1.4rem; }
+.prose ol { list-style: decimal; padding-left: 1.4rem; }
+.prose strong { color: var(--primary); }
+.prose code { background: color-mix(in oklab, var(--primary) 12%, transparent); padding: 0 .3rem; border-radius: .25rem; }
+.prose pre { background: color-mix(in oklab, var(--primary) 8%, transparent); padding: .75rem; border-radius: .5rem; overflow-x: auto; }
+.prose h1,.prose h2,.prose h3 { font-weight: 600; color: var(--primary); margin: .75rem 0 .25rem; }
