@@ -18,7 +18,7 @@ export function matchAppCommand(text: string): { label: string; url: string } | 
   const t = text.toLowerCase().trim().replace(/[.!?]+$/, "");
   const m = t.match(/^(?:bitte\s+)?(?:öffne|oeffne|starte|zeig(?:e)?(?:\s+mir)?|geh(?:e)?\s+zu|such(?:e)?(?:\s+auf)?)\s+(.+)$/);
   if (!m) return null;
-  const rest = m[1];
+  const rest = m[1] ?? "";
   const sorted = [...APPS].sort((a, b) => Math.max(...b.names.map((n) => n.length)) - Math.max(...a.names.map((n) => n.length)));
   for (const app of sorted) {
     for (const n of app.names) {
