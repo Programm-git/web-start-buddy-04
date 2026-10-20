@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { convertToModelMessages, type UIMessage } from "ai";
 import { z } from "zod";
-import { createResponsesCall } from "@/lib/ai/responses";
 import { createGeminiCall } from "@/lib/ai/gemini";
 
 const SYSTEM = `Du bist MARK LV, ein höflicher, präziser und leicht humorvoller KI-Assistent im Stil von J.A.R.V.I.S. Sprich den Nutzer respektvoll an (z. B. "Sir" oder "Ma'am", wenn passend). Antworte standardmäßig auf Deutsch, außer der Nutzer schreibt in einer anderen Sprache. Halte Antworten klar und kompakt, nutze Markdown bei Bedarf.`;
@@ -10,9 +9,8 @@ export const Route = createFileRoute("/api/chat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const geminiKey = request.headers.get("X-Gemini-API-Key")?.trim();
-        const apiKey = process.env['LOVABLE_API_KEY'];
-        if (!geminiKey && !apiKey) return new Response("KI ist nicht konfiguriert.", { status: 500 });
+        const apiKey = process.env['GOOGLE_API_KEY'];
+        if (!apiKey) return new Response("Gemini ist nicht konfiguriert.", { status: 500 });
         const maxBody = 23 * 1024 * 1024;
         if (Number(request.headers.get("content-length") ?? 0) > maxBody) return new Response("Anhänge sind zu groß.", { status: 413 });
         const raw = await request.text();
@@ -35,14 +33,7 @@ export const Route = createFileRoute("/api/chat")({
           if (message.parts.some((part) => part.type === "text" && (typeof part.text !== "string" || part.text.length > 80_000))) return new Response("Nachricht ist zu lang.", { status: 400 });
         }
         const modelMessages = await convertToModelMessages(messages);
-        if (geminiKey) return createGeminiCall(request, geminiKey, modelMessages, SYSTEM);
-        if (!apiKey) return new Response("KI ist nicht konfiguriert.", { status: 500 });
-        return createResponsesCall(
-          request,
-          { baseURL: "https://ai.gateway.lovable.dev/v1", apiKey, model: "openai/gpt-6-astra" },
-          modelMessages,
-          SYSTEM,
-        ).response();
+        return createGeminiCall(request, apiKey, modelMessages, SYSTEM);
       },
     },
   },

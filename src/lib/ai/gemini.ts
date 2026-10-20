@@ -4,7 +4,7 @@ import { streamText, type ModelMessage } from "ai";
 export function createGeminiCall(request: Request, apiKey: string, messages: ModelMessage[], system: string) {
   const google = createGoogleGenerativeAI({ apiKey });
   return streamText({
-    model: google("gemini-3.8-flash"),
+    model: google("gemini-3.1-flash-lite"),
     system,
     messages,
     abortSignal: request.signal,

@@ -14,7 +14,7 @@ describe("Gemini chat", () => {
     stream.mockReturnValue({ toUIMessageStreamResponse: response });
     const request = new Request("http://localhost/api/chat");
     createGeminiCall(request, "synthetic-test-only", [{ role: "user", content: "Hallo" }], "MARK LV");
-    expect(provider).toHaveBeenCalledWith("gemini-3.8-flash");
+    expect(provider).toHaveBeenCalledWith("gemini-3.1-flash-lite");
     expect(stream.mock.calls[0]?.[0].system).toBe("MARK LV");
     const onError = response.mock.calls[0]?.[0]?.onError;
     expect(onError?.(new Error("sensitive-provider-payload"))).not.toContain("sensitive-provider-payload");

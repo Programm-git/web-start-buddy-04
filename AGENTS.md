@@ -10,4 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Normalize supported text attachments in the browser and send image/PDF attachments through the existing streamed chat endpoint; this keeps uploads within the current conversation without a separate storage service.
-- Keep visitor-entered AI keys in memory only and forward them to the fixed provider through the chat endpoint; never persist or log credentials or raw provider errors.
+- Read the project AI provider credential only inside the chat handler from the encrypted secret store; never accept browser-supplied keys or persist, expose, or log credentials or raw provider errors.

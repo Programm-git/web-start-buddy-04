@@ -6,7 +6,6 @@ import ReactMarkdown from "react-markdown";
 import { Camera, FilePlus2, ImagePlus, Mic, MicOff, Paperclip, Send, Square, Volume2, VolumeX, X } from "lucide-react";
 import type { FileUIPart } from "ai";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { matchAppCommand, openLink } from "@/lib/app-links";
 
 export const Route = createFileRoute("/")({
@@ -28,8 +27,6 @@ function textOf(m: { parts: Array<{ type: string; text?: string }> }) {
 }
 
 function Index() {
-  const [geminiKey, setGeminiKey] = useState("");
-  const geminiKeyRef = useRef("");
   const [input, setInput] = useState("");
   const [voice, setVoice] = useState(true);
   const voiceRef = useRef(true);
@@ -45,7 +42,7 @@ function Index() {
   const cameraRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const { messages, sendMessage, status, stop, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat", headers: () => geminiKeyRef.current ? { "X-Gemini-API-Key": geminiKeyRef.current } : {} }),
+    transport: new DefaultChatTransport({ api: "/api/chat" }),
     onFinish: ({ message }) => {
       if (!voiceRef.current || typeof window === "undefined" || !window.speechSynthesis) return;
       const t = textOf(message as any).replace(/[#*`_>]/g, "");
@@ -226,17 +223,6 @@ function Index() {
       </main>
 
       <form onSubmit={(e) => { e.preventDefault(); void submit(input); }} className="border-t border-primary/20 p-4">
-        <div className="mx-auto mb-3 max-w-3xl">
-          <label htmlFor="gemini-key" className="mb-1 block text-sm text-primary">Gemini API-Schlüssel</label>
-          <div className="flex items-center gap-2">
-            <Input id="gemini-key" type="password" autoComplete="off" autoCorrect="off" spellCheck={false} placeholder="API-Schlüssel aus Google AI Studio" value={geminiKey} disabled={busy} onChange={(e) => { setGeminiKey(e.target.value); geminiKeyRef.current = e.target.value.trim(); }} className="min-w-0 flex-1" />
-            <Button type="button" variant="ghost" size="icon" disabled={busy || !geminiKey} aria-label="Gemini-Schlüssel entfernen" title="Gemini-Schlüssel entfernen" onClick={() => { setGeminiKey(""); geminiKeyRef.current = ""; }}><X size={18} /></Button>
-          </div>
-          <div className="mt-1 flex flex-wrap justify-between gap-1 text-xs text-muted-foreground">
-            <span>{geminiKey.trim() ? "Gemini ausgewählt · nur für diese Sitzung" : "Standard-KI ausgewählt"}</span>
-            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-primary underline">Google AI Studio</a>
-          </div>
-        </div>
         <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.txt,.md,.csv,.json" multiple hidden onChange={addFiles} aria-label="Datei einfügen" />
         <input ref={photoRef} type="file" accept="image/*" hidden onChange={addFiles} aria-label="Foto auswählen" />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={addFiles} aria-label="Foto aufnehmen" />
