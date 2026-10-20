@@ -1,3 +1,3 @@
 - [x] Replace four suggestions with file and photo actions; support image, PDF and text attachments in chat.
 - [x] Make microphone listening usable for spoken commands and verify the flow.
-- [ ] Add a masked Gemini key field and verify request selection and clearing.
+- [x] Add a masked Gemini key field and verify request selection and clearing (simulated provider; real key not supplied).
