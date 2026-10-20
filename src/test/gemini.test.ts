@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 const { provider, stream, response } = vi.hoisted(() => ({
   provider: vi.fn(() => "gemini-model"),
   stream: vi.fn(),
-  response: vi.fn(() => new Response()),
+  response: vi.fn((_options: { onError: (error: unknown) => string }) => new Response()),
 }));
 vi.mock("@ai-sdk/google", () => ({ createGoogleGenerativeAI: () => provider }));
 vi.mock("ai", () => ({ streamText: stream }));
@@ -17,6 +17,6 @@ describe("Gemini chat", () => {
     expect(provider).toHaveBeenCalledWith("gemini-3.8-flash");
     expect(stream.mock.calls[0]?.[0].system).toBe("MARK LV");
     const onError = response.mock.calls[0]?.[0]?.onError;
-    expect(onError(new Error("sensitive-provider-payload"))).not.toContain("sensitive-provider-payload");
+    expect(onError?.(new Error("sensitive-provider-payload"))).not.toContain("sensitive-provider-payload");
   });
 });
