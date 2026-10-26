@@ -3,9 +3,23 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import ReactMarkdown from "react-markdown";
-import { Camera, FilePlus2, ImagePlus, Mic, MicOff, Paperclip, Send, Square, Volume2, VolumeX, X } from "lucide-react";
+import {
+  Camera,
+  ChevronRight,
+  FilePlus2,
+  ImagePlus,
+  MapPin,
+  Mic,
+  MicOff,
+  Paperclip,
+  Send,
+  Square,
+  SunMedium,
+  Volume2,
+  VolumeX,
+  X,
+} from "lucide-react";
 import type { FileUIPart } from "ai";
-import { Button } from "@/components/ui/button";
 import { matchAppCommand, openLink } from "@/lib/app-links";
 
 export const Route = createFileRoute("/")({
@@ -23,7 +37,11 @@ export const Route = createFileRoute("/")({
 });
 
 function textOf(m: { parts: Array<{ type: string; text?: string }> }) {
-  return m.parts.filter((p) => p.type === "text").map((p) => p.text).join("").replace(/\n\n\(System:[^)]*\)$/, "");
+  return m.parts
+    .filter((p) => p.type === "text")
+    .map((p) => p.text)
+    .join("")
+    .replace(/\n\n\(System:[^)]*\)$/, "");
 }
 
 function Index() {
@@ -41,6 +59,7 @@ function Index() {
   const photoRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
+
   const { messages, sendMessage, status, stop, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
     onFinish: ({ message }) => {
@@ -48,23 +67,33 @@ function Index() {
       const t = textOf(message as any).replace(/[#*`_>]/g, "");
       const u = new SpeechSynthesisUtterance(t);
       u.lang = "de-DE";
+
       if (listeningRef.current) {
         speakingRef.current = true;
         recRef.current?.stop();
         u.onend = u.onerror = () => {
           speakingRef.current = false;
           if (listeningRef.current) {
-            try { recRef.current?.start(); } catch { listeningRef.current = false; setListening(false); }
+            try {
+              recRef.current?.start();
+            } catch {
+              listeningRef.current = false;
+              setListening(false);
+            }
           }
         };
       }
+
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(u);
     },
   });
+
   const busy = status === "submitted" || status === "streaming";
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => () => {
     listeningRef.current = false;
@@ -76,26 +105,48 @@ function Index() {
     const selected = Array.from(e.target.files ?? []);
     e.target.value = "";
     if (!selected.length) return;
-    const allowed = selected.filter((f) =>
-      ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf", "text/plain", "text/markdown", "text/csv", "application/json"].includes(f.type) || /\.(txt|md|csv|json)$/i.test(f.name)
+
+    const allowed = selected.filter(
+      (f) =>
+        [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+          "application/pdf",
+          "text/plain",
+          "text/markdown",
+          "text/csv",
+          "application/json",
+        ].includes(f.type) || /\.(txt|md|csv|json)$/i.test(f.name),
     );
-    if (allowed.length !== selected.length) setAttachmentError("Dieses Dateiformat wird nicht unterstützt. Bitte Bild, PDF, TXT, MD, CSV oder JSON wählen.");
-    else setAttachmentError("");
+
+    if (allowed.length !== selected.length) {
+      setAttachmentError("Dieses Dateiformat wird nicht unterstützt. Bitte Bild, PDF, TXT, MD, CSV oder JSON wählen.");
+    } else {
+      setAttachmentError("");
+    }
+
     const withinLimit = allowed.filter((f) => f.size <= 5 * 1024 * 1024);
-    if (withinLimit.length !== allowed.length) setAttachmentError("Dateien dürfen höchstens 5 MB groß sein.");
+    if (withinLimit.length !== allowed.length) {
+      setAttachmentError("Dateien dürfen höchstens 5 MB groß sein.");
+    }
+
     setAttachments((current) => [...current, ...withinLimit].slice(0, 3));
   };
 
-  const readDataUrl = (file: File): Promise<string> => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
-    reader.readAsDataURL(file);
-  });
+  const readDataUrl = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+      reader.readAsDataURL(file);
+    });
 
   const submit = async (text: string) => {
     const t = text.trim();
     if ((!t && !attachments.length) || busy) return;
+
     const app = attachments.length ? null : matchAppCommand(t);
     if (app) {
       openLink(app.url);
@@ -104,6 +155,7 @@ function Index() {
       try {
         const files: FileUIPart[] = [];
         const texts: string[] = [];
+
         for (const file of attachments) {
           if (file.type.startsWith("image/") || file.type === "application/pdf") {
             files.push({ type: "file", mediaType: file.type, filename: file.name, url: await readDataUrl(file) });
@@ -111,7 +163,11 @@ function Index() {
             texts.push(`Datei: ${file.name}\n${(await file.text()).slice(0, 25000)}`);
           }
         }
-        void sendMessage({ text: [t || "Bitte sieh dir diese Datei an.", ...texts].join("\n\n"), ...(files.length ? { files } : {}) });
+
+        void sendMessage({
+          text: [t || "Bitte sieh dir diese Datei an.", ...texts].join("\n\n"),
+          ...(files.length ? { files } : {}),
+        });
         setAttachments([]);
         setAttachmentError("");
       } catch {
@@ -119,8 +175,10 @@ function Index() {
         return;
       }
     }
+
     setInput("");
   };
+
   submitRef.current = submit;
 
   const toggleMic = () => {
@@ -130,8 +188,13 @@ function Index() {
       recRef.current?.stop();
       return;
     }
+
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SR) { setAttachmentError("Spracheingabe wird von diesem Browser nicht unterstützt. Bitte Safari oder Chrome aktualisieren."); return; }
+    if (!SR) {
+      setAttachmentError("Spracheingabe wird von diesem Browser nicht unterstützt. Bitte Safari oder Chrome aktualisieren.");
+      return;
+    }
+
     const rec = new SR();
     rec.lang = "de-DE";
     rec.continuous = true;
@@ -152,104 +215,293 @@ function Index() {
     };
     rec.onend = () => {
       if (listeningRef.current && !speakingRef.current) {
-        try { rec.start(); } catch { listeningRef.current = false; setListening(false); }
+        try {
+          rec.start();
+        } catch {
+          listeningRef.current = false;
+          setListening(false);
+        }
       }
     };
+
     recRef.current = rec;
     listeningRef.current = true;
     setListening(true);
     setAttachmentError("");
-    try { rec.start(); } catch { listeningRef.current = false; setListening(false); setAttachmentError("Mikrofon konnte nicht gestartet werden."); }
+
+    try {
+      rec.start();
+    } catch {
+      listeningRef.current = false;
+      setListening(false);
+      setAttachmentError("Mikrofon konnte nicht gestartet werden.");
+    }
   };
 
   return (
-    <div className="hud-bg min-h-screen text-foreground flex flex-col">
-      <header className="flex items-center justify-between px-6 py-4 border-b border-primary/20">
-        <h1 className="font-display text-xl tracking-[0.3em] text-primary hud-glow">MARK LV</h1>
-        <div className="flex items-center gap-3 text-xs tracking-widest text-muted-foreground">
-          <span className={`h-2 w-2 rounded-full ${busy ? "bg-accent animate-pulse" : "bg-primary"}`} />
-          {busy ? "VERARBEITE" : "BEREIT"}
-          <Button variant="ghost" size="icon" onClick={() => { voiceRef.current = !voice; setVoice(!voice); window.speechSynthesis?.cancel(); }} className="ml-3 text-primary" aria-label="Sprachausgabe umschalten" title="Sprachausgabe umschalten">
-            {voice ? <Volume2 size={18} /> : <VolumeX size={18} />}
-          </Button>
+    <div className="jarvis-screen">
+      <aside className="jarvis-sidebar">
+        <div className="jarvis-brand-row">
+          <div className="jarvis-brand-mark">J</div>
+          <div className="jarvis-brand-text">
+            <span className="jarvis-brand-main">J.A.R.V.I.S.</span>
+            <span className="jarvis-brand-sub">PERSONAL OPERATIONS</span>
+          </div>
         </div>
-      </header>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center text-center pt-10">
+        <div className="jarvis-card weather-card">
+          <div className="jarvis-card-title">WETTER</div>
+          <div className="weather-location-row">
+            <MapPin size={16} />
+            <span>München</span>
+          </div>
+
+          <div className="weather-main-row">
+            <div className="weather-temp">21</div>
+            <div className="weather-degree">°</div>
+            <div className="weather-icon-wrap">
+              <div className="weather-sun" />
+            </div>
+          </div>
+
+          <div className="weather-state">Leicht bewölkt</div>
+
+          <div className="weather-forecast">
+            <div className="forecast-day">
+              <span>Heute</span>
+              <SunMedium size={18} />
+              <strong>21°</strong>
+              <small>12°</small>
+            </div>
+            <div className="forecast-day">
+              <span>Mi</span>
+              <SunMedium size={18} />
+              <strong>23°</strong>
+              <small>13°</small>
+            </div>
+            <div className="forecast-day">
+              <span>Do</span>
+              <SunMedium size={18} />
+              <strong>19°</strong>
+              <small>11°</small>
+            </div>
+            <div className="forecast-day">
+              <span>Fr</span>
+              <SunMedium size={18} />
+              <strong>22°</strong>
+              <small>20°</small>
+            </div>
+            <div className="forecast-day">
+              <span>Sa</span>
+              <SunMedium size={18} />
+              <strong>20°</strong>
+              <small>11°</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="jarvis-card task-card">
+          <div className="jarvis-card-title with-meta">
+            <span>HEUTE</span>
+            <span className="meta-date">Di, 15. Apr. 2025</span>
+          </div>
+
+          <div className="task-item task-item-active">
+            <div className="task-time">10:00</div>
+            <div className="task-copy">
+              <span className="task-label">Projektbesprechung</span>
+              <small>Besprechungsraum 3. OG</small>
+            </div>
+          </div>
+
+          <div className="task-item">
+            <div className="task-time">16:30</div>
+            <div className="task-copy">
+              <span className="task-label">Training</span>
+              <small>Fitnessstudio</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="jarvis-card compact-card">
+          <div className="jarvis-card-title">FOKUSMODUS</div>
+          <div className="focus-row">
+            <span>Ablenkungen minimieren</span>
+            <span className="toggle-pill" />
+          </div>
+        </div>
+
+        <div className="jarvis-footnote">„GROSSE ZIELE BRAUCHEN KLARE FOKUSSIERUNG.“</div>
+      </aside>
+
+      <div className="jarvis-main">
+        <header className="jarvis-header">
+          <div className="header-left">
+            <span className="header-kicker">INTELLIGENCE // PLANNING // PRODUCTIVITY // A MORE FOCUSED YOU</span>
+          </div>
+          <div className="header-right">
+            <div className="online-pill">
+              <span className="online-dot" />
+              System bereit
+            </div>
+            <div className="time-pill">19:42</div>
+            <button type="button" className="settings-btn">EINSTELLUNGEN</button>
+          </div>
+        </header>
+
+        <div className="jarvis-stage">
+          <div className="jarvis-center-panel">
+            <div className="orbital-header">
+              <div className="orbital-tag">JARVIS / ONLINE</div>
+              <div className="orbital-meta">VERTRAULICH // PERSÖNLICHE ASSISTENTIN // SICHER // IMMER AN DEINER SEITE</div>
+            </div>
+
+            <div className="core-scene-wrap">
               <div className={`core3d ${busy ? "core-active" : ""}`} aria-hidden="true">
                 <div className="core-scene">
-                  <div className="core-ring r1" /><div className="core-ring r2" /><div className="core-ring r3" /><div className="core-ring r4" />
-                  <div className="core-orbit o1"><span /></div><div className="core-orbit o2"><span /></div>
+                  <div className="core-ring r1" />
+                  <div className="core-ring r2" />
+                  <div className="core-ring r3" />
+                  <div className="core-ring r4" />
+                  <div className="core-orbit o1"><span /></div>
+                  <div className="core-orbit o2"><span /></div>
                   <div className="core-heart" />
                 </div>
               </div>
-              <p className="mt-8 font-display tracking-[0.2em] text-primary">GUTEN TAG.</p>
-              <p className="mt-2 text-muted-foreground max-w-md">Alle Systeme online. Wie kann ich Ihnen behilflich sein?</p>
-              <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-2 w-full max-w-xl">
-                <Button type="button" variant="outline" onClick={() => fileRef.current?.click()} className="hud-panel h-12 text-primary"><FilePlus2 /> Datei einfügen</Button>
-                <Button type="button" variant="outline" onClick={() => cameraRef.current?.click()} className="hud-panel h-12 text-primary"><Camera /> Foto aufnehmen</Button>
-                <Button type="button" variant="outline" onClick={() => photoRef.current?.click()} className="hud-panel h-12 text-primary"><ImagePlus /> Foto auswählen</Button>
+            </div>
+
+            <div className="hero-text-block">
+              <p className="hero-greeting">Guten Abend.</p>
+              <p className="hero-question">Wie kann ich dir helfen?</p>
+            </div>
+
+            <div className="jarvis-chat-box">
+              <div className="chat-label">JARVIS · ANTWORT</div>
+              <div className="chat-bubble">
+                {messages.length > 0 ? (
+                  <div className="chat-message-stack">
+                    {messages.map((m) => (
+                      <div key={m.id} className={`chat-line ${m.role}`}>
+                        {m.role === "user" ? (
+                          <div className="chat-user">{textOf(m as any)}</div>
+                        ) : (
+                          <div className="chat-assistant">
+                            <ReactMarkdown>{textOf(m as any) || "…"}</ReactMarkdown>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="chat-placeholder">Alle Systeme sind bereit. Du hast heute zwei Termine. Soll ich dir einen Tag planen?</div>
+                )}
               </div>
             </div>
-          )}
-          {messages.map((m) => (
-            <div key={m.id} className={m.role === "user" ? "flex justify-end" : ""}>
-              {m.role === "user" ? (
-                <div className="max-w-[80%] rounded-lg bg-primary text-primary-foreground px-4 py-2">
-                  {m.parts.filter((p) => p.type === "file").map((p, i) => p.type === "file" ? (
-                    <div key={i} className="mb-2">
-                      {p.mediaType.startsWith("image/") ? <img src={p.url} alt={p.filename || "Gesendetes Foto"} className="max-h-64 max-w-full object-contain rounded" /> : <span className="text-sm">📎 {p.filename || "Dokument"}</span>}
-                    </div>
-                  ) : null)}
-                  {textOf(m as any)}
-                </div>
-              ) : (
-                <div>
-                  <div className="font-display text-[10px] tracking-[0.3em] text-primary mb-1">MARK LV</div>
-                  <div className="prose prose-invert max-w-none prose-p:my-2 text-foreground">
-                    <ReactMarkdown>{textOf(m as any) || "…"}</ReactMarkdown>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-          {status === "submitted" && <div className="text-primary animate-pulse font-display text-xs tracking-widest">ANALYSIERE…</div>}
-          {error && <div className="hud-panel border-destructive/60 text-destructive px-4 py-3 text-sm">Fehler: {error.message}</div>}
-          <div ref={endRef} />
-        </div>
-      </main>
+          </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); void submit(input); }} className="border-t border-primary/20 p-4">
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.txt,.md,.csv,.json" multiple hidden onChange={addFiles} aria-label="Datei einfügen" />
-        <input ref={photoRef} type="file" accept="image/*" hidden onChange={addFiles} aria-label="Foto auswählen" />
-        <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={addFiles} aria-label="Foto aufnehmen" />
-        {(attachments.length > 0 || attachmentError) && <div className="mx-auto max-w-3xl mb-2 flex flex-wrap gap-2 items-center text-sm">
-          {attachments.map((file, i) => <span key={`${file.name}-${i}`} className="hud-panel inline-flex items-center gap-1 px-2 py-1 text-primary max-w-full truncate">{file.name}<Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-primary" aria-label={`${file.name} entfernen`} onClick={() => setAttachments((a) => a.filter((_, index) => index !== i))}><X size={14} /></Button></span>)}
-          {attachmentError && <span role="alert" className="text-destructive">{attachmentError}</span>}
-        </div>}
-        <div className="mx-auto max-w-3xl hud-panel flex items-end gap-2 p-2">
-          <Button type="button" variant="ghost" size="icon" onClick={() => fileRef.current?.click()} className="h-11 w-11 text-primary" aria-label="Datei anhängen" title="Datei anhängen"><Paperclip size={18} /></Button>
-          <Button type="button" onClick={toggleMic} variant="ghost" size="icon" className={`h-11 w-11 ${listening ? "bg-accent text-accent-foreground animate-pulse" : "text-primary"}`} aria-label={listening ? "Zuhören beenden" : "Zuhören starten"} title={listening ? "Zuhören beenden" : "Zuhören starten"} aria-pressed={listening}>
-            {listening ? <MicOff size={18} /> : <Mic size={18} />}
-          </Button>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(input); } }}
-            rows={1}
-            placeholder="Befehl eingeben…"
-            className="flex-1 resize-none bg-transparent outline-none py-3 px-2 placeholder:text-muted-foreground"
-          />
-          {busy ? (
-            <Button type="button" onClick={stop} size="icon" className="h-11 w-11 bg-accent text-accent-foreground" aria-label="Stopp"><Square size={18} /></Button>
-          ) : (
-            <Button type="submit" disabled={!input.trim() && !attachments.length} size="icon" className="h-11 w-11" aria-label="Senden"><Send size={18} /></Button>
-          )}
+          <div className="jarvis-side-stack">
+            <div className="jarvis-card system-card">
+              <div className="jarvis-card-title">SYSTEMSTATUS</div>
+
+              <div className="system-row">
+                <span>CPU</span>
+                <div className="bar-wrap"><span style={{ width: "24%" }} /></div>
+                <strong>24%</strong>
+              </div>
+              <div className="system-row">
+                <span>RAM</span>
+                <div className="bar-wrap"><span style={{ width: "62%" }} /></div>
+                <strong>62%</strong>
+              </div>
+
+              <div className="device-list">
+                <div className="device-item"><span className="device-dot online" /> <span>KI-Kern</span> <strong>Online</strong></div>
+                <div className="device-item"><span className="device-dot online" /> <span>Sprachverarbeitung</span> <strong>Online</strong></div>
+                <div className="device-item"><span className="device-dot online" /> <span>Datenzugriff</span> <strong>Online</strong></div>
+                <div className="device-item"><span className="device-dot online" /> <span>Smart Home</span> <strong>Verbunden</strong></div>
+              </div>
+            </div>
+
+            <div className="jarvis-card quick-card">
+              <div className="jarvis-card-title">SCHNELLZUGRIFF</div>
+              <div className="quick-list">
+                <button type="button" className="quick-row" onClick={() => fileRef.current?.click()}>
+                  <span className="quick-icon">☰</span>
+                  <span>Kalender</span>
+                  <ChevronRight size={15} />
+                </button>
+                <button type="button" className="quick-row" onClick={() => fileRef.current?.click()}>
+                  <span className="quick-icon">🗂</span>
+                  <span>Dateien</span>
+                  <ChevronRight size={15} />
+                </button>
+                <button type="button" className="quick-row" onClick={() => photoRef.current?.click()}>
+                  <span className="quick-icon">◌</span>
+                  <span>Notiz</span>
+                  <ChevronRight size={15} />
+                </button>
+              </div>
+            </div>
+
+            <div className="jarvis-card secure-card">
+              <div className="secure-row">
+                <span className="secure-check">✓</span>
+                <span>VERBINDUNG SICHER</span>
+                <ChevronRight size={15} />
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
+
+        <form onSubmit={(e) => { e.preventDefault(); void submit(input); }} className="jarvis-composer-form">
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,.txt,.md,.csv,.json" multiple hidden onChange={addFiles} aria-label="Datei einfügen" />
+          <input ref={photoRef} type="file" accept="image/*" hidden onChange={addFiles} aria-label="Foto auswählen" />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={addFiles} aria-label="Foto aufnehmen" />
+
+          {(attachments.length > 0 || attachmentError) && (
+            <div className="new-ui-attachment-bar">
+              {attachments.map((file, i) => (
+                <span key={`${file.name}-${i}`} className="new-ui-file-tag">
+                  {file.name}
+                  <button type="button" className="new-ui-remove-attachment" onClick={() => setAttachments((current) => current.filter((_, idx) => idx !== i))} aria-label={`Datei ${file.name} entfernen`}>
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+              {attachmentError && <span role="alert" className="new-ui-error-inline">{attachmentError}</span>}
+            </div>
+          )}
+
+          <div className="jarvis-composer">
+            <button type="button" className="composer-icon-button" onClick={() => fileRef.current?.click()} aria-label="Datei anhängen">
+              <Paperclip size={18} />
+            </button>
+            <button type="button" className={`composer-icon-button ${listening ? "is-listening" : ""}`} onClick={toggleMic} aria-label="Mikrofon">
+              {listening ? <MicOff size={18} /> : <Mic size={18} />}
+            </button>
+
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void submit(input);
+                }
+              }}
+              rows={1}
+              placeholder="Frag JARVIS oder gib einen Befehl ein..."
+              className="jarvis-input"
+            />
+
+            {busy ? (
+              <button type="button" className="composer-send stop" onClick={stop} aria-label="Stopp"><Square size={18} /></button>
+            ) : (
+              <button type="submit" className="composer-send" disabled={!input.trim() && !attachments.length} aria-label="Senden"><Send size={18} /></button>
+            )}
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
